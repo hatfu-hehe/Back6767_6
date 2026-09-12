@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from . import swagger
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,3 +15,5 @@ urlpatterns = [
     # path('api/v1/products/reviews/', views.products_reviews_api_view),
     # path('api/v1/categories/count', views.category_list_with_count_api_view),
 ]
+
+urlpatterns += swagger.urlpatterns
