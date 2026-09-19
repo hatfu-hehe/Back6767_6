@@ -1,31 +1,34 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib.auth.models import User
 from rest_framework import status
-from .serializers import UserCreateSerializer, UserAuthSerializer, UserConfirmSerializer
-from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from .models import ConfirmCode
+from django.contrib.auth import authenticate
+from drf_yasg.utils import swagger_auto_schema
+
+from .serializers import UserCreateSerializer, UserAuthSerializer, UserConfirmSerializer
+from .models import ConfirmCode, CustomUser
 
 
+@swagger_auto_schema(method='post', request_body=UserCreateSerializer)
 @api_view(['POST'])
 def registration_api_view(request):
     serializer = UserCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = request.data.get('username')
+    email = request.data.get('email')
     password = request.data.get('password')
-    user = User.objects.create_user(
-        username=username,
+    user = CustomUser.objects.create_user(
+        email=email,
         password=password,
         is_active=False
     )
     confirm_code = ConfirmCode.objects.create(user=user)
-    print(f'Code for {username}: {confirm_code.code}')
+    print(f'Code for {email}: {confirm_code.code}')
 
     return Response(status=status.HTTP_201_CREATED,
                     data={'user_id': user.id})
 
 
+@swagger_auto_schema(method='post', request_body=UserAuthSerializer)
 @api_view(['POST'])
 def authorization_api_view(request):
     serializer = UserAuthSerializer(data=request.data)
@@ -37,6 +40,7 @@ def authorization_api_view(request):
     return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
+@swagger_auto_schema(method='post', request_body=UserConfirmSerializer)
 @api_view(['POST'])
 def confirm_api_view(request):
     serializer = UserConfirmSerializer(data=request.data)
