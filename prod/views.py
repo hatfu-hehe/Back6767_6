@@ -10,7 +10,7 @@ from .serializers import (
     CategoryValidateSerializer, ProductValidateSerializer, ReviewValidateSerializer,
 )
 from rest_framework.pagination import PageNumberPagination
-
+from common.permissions import CanEdit, IsAnonymous, IsOwner, IsModerator
 
 class CustomPagination(PageNumberPagination):
     def get_paginated_response(self, data):
@@ -59,6 +59,7 @@ class ProductViewSet(ModelViewSet):
     serializer_class = ProductDetailsSerializer
     pagination_class = CustomPagination
     lookup_field = 'id'
+    permission_classes = [IsOwner | IsAnonymous | IsModerator]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -79,10 +80,11 @@ class ProductViewSet(ModelViewSet):
             title=title,
             price=price,
             description=description,
-            category_id=category_id
+            category_id=category_id,
+            owner=request.user,
         )
         return Response(data=ProductDetailsSerializer(prod).data,
-                         status=status.HTTP_201_CREATED)
+                        status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         prod = self.get_object()
@@ -96,7 +98,7 @@ class ProductViewSet(ModelViewSet):
         prod.category_id = serializer.validated_data.get('category_id')
         prod.save()
         return Response(status=status.HTTP_201_CREATED,
-                         data=ProductDetailsSerializer(prod).data)
+                        data=ProductDetailsSerializer(prod).data)
 
 
 class ReviewViewSet(ModelViewSet):

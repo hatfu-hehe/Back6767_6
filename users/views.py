@@ -5,8 +5,14 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from drf_yasg.utils import swagger_auto_schema
 
-from .serializers import UserCreateSerializer, UserAuthSerializer, UserConfirmSerializer
+from .serializers import UserCreateSerializer, UserAuthSerializer, UserConfirmSerializer, CustomTokenObtainPairSerializer
 from .models import ConfirmCode, CustomUser
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+    
 
 
 @swagger_auto_schema(method='post', request_body=UserCreateSerializer)
