@@ -11,6 +11,7 @@ from .serializers import (
 )
 from rest_framework.pagination import PageNumberPagination
 from common.permissions import CanEdit, IsAnonymous, IsOwner, IsModerator
+from common.validators import validate_age
 
 class CustomPagination(PageNumberPagination):
     def get_paginated_response(self, data):
@@ -67,6 +68,8 @@ class ProductViewSet(ModelViewSet):
         return self.serializer_class
 
     def create(self, request, *args, **kwargs):
+        validate_age(request)
+        
         serializer = ProductValidateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)

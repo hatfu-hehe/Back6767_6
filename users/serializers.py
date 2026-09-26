@@ -3,6 +3,9 @@ from rest_framework.exceptions import ValidationError
 from users.models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+class OAuthCodeSerializer(serializers.Serializer):
+    code = serializers.CharField()
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -10,6 +13,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token["email"] = user.email
         token["is_staff"] = user.is_staff
+        token["birthdate"] = str(user.birthdate) if user.birthdate else None
         return token
 
 

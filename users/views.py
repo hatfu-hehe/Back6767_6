@@ -10,9 +10,11 @@ from .models import ConfirmCode, CustomUser
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from common.validators import validate_age
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-    
+
 
 
 @swagger_auto_schema(method='post', request_body=UserCreateSerializer)
