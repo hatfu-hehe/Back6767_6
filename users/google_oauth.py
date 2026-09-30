@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from users.models import CustomUser
 from rest_framework_simplejwt.tokens import RefreshToken
 import os
+from django.utils import timezone
+from rest_framework import status
 
 class GoogleLoginAPIView(CreateAPIView):
     serializer_class = OAuthCodeSerializer
@@ -43,6 +45,16 @@ class GoogleLoginAPIView(CreateAPIView):
         email = user_info["email"]
         
         user, created = CustomUser.objects.get_or_create(email=email)
+        
+        if created:
+            user.registration_source = "google"
+            user.set_unusable_password()
+
+        user.first_name = user_info.get("given_name", "")
+        user.last_name = user_info.get("family_name", "")
+        user.is_active = True
+        user.last_login = timezone.now()
+        user.save()
         
         refresh = RefreshToken.for_user(user)
         refresh["email"] = user.email

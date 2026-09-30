@@ -12,6 +12,7 @@ from .serializers import (
 from rest_framework.pagination import PageNumberPagination
 from common.permissions import CanEdit, IsAnonymous, IsOwner, IsModerator
 from common.validators import validate_age
+from django.core.cache import cache
 
 class CustomPagination(PageNumberPagination):
     def get_paginated_response(self, data):
@@ -88,6 +89,17 @@ class ProductViewSet(ModelViewSet):
         )
         return Response(data=ProductDetailsSerializer(prod).data,
                         status=status.HTTP_201_CREATED)
+        
+    def get(self, request, *args, **kwargs):
+        cached_data = cache.get("product_list")
+        if cached_data:
+            print('Redis' * 20)
+            return Response(data=cached_data, status=status.HTTP_200_OK)
+        response = super().get(self, request, *args, **kwargs)
+        print("postgres" * 20)
+        if response.data.get("total", 0) > 0:
+            cache.set("product_list", response.data, timeout=30)
+        return response
 
     def update(self, request, *args, **kwargs):
         prod = self.get_object()
