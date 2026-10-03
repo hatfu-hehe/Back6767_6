@@ -27,9 +27,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email or ""
 
 
-class ConfirmCode(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='confirm_code')
-    code = models.CharField(max_length=6, default=generate_code)
+# class ConfirmCode(models.Model):
+#     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='confirm_code')
+#     code = models.CharField(max_length=6, default=generate_code)
 
-    def __str__(self):
-        return f'{self.user.email} - {self.code}'
+#     def __str__(self):
+#         return f'{self.user.email} - {self.code}'

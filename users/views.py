@@ -6,11 +6,13 @@ from django.contrib.auth import authenticate
 from drf_yasg.utils import swagger_auto_schema
 
 from .serializers import UserCreateSerializer, UserAuthSerializer, UserConfirmSerializer, CustomTokenObtainPairSerializer
-from .models import ConfirmCode, CustomUser
+from .models import CustomUser
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from common.validators import validate_age
+from .codes import save_code, check_code
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -29,8 +31,13 @@ def registration_api_view(request):
         password=password,
         is_active=False
     )
-    confirm_code = ConfirmCode.objects.create(user=user)
-    print(f'Code for {email}: {confirm_code.code}')
+    user = CustomUser.objects.create_user(
+        email=email,
+        password=password,
+        is_active=False
+    )
+    code = save_code(user.id)
+    print(f'Code for {email}: {code}')
 
     return Response(status=status.HTTP_201_CREATED,
                     data={'user_id': user.id})
@@ -56,17 +63,14 @@ def confirm_api_view(request):
     user_id = serializer.validated_data['user_id']
     code = serializer.validated_data['code']
 
-    try:
-        confirm_code = ConfirmCode.objects.get(user_id=user_id, code=code)
-    except ConfirmCode.DoesNotExist:
+    if not check_code(user_id, code):
         return Response(
             status=status.HTTP_400_BAD_REQUEST,
             data={'error': 'Wrong code numbers'}
         )
 
-    user = confirm_code.user
+    user = CustomUser.objects.get(id=user_id)
     user.is_active = True
     user.save()
-    confirm_code.delete()
 
     return Response(data={'detail': 'Success'})
